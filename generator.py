@@ -40,7 +40,6 @@ class ImageResizer:
         if len(self.addIcon) > 0:
             image.paste(start, (position[0]-3, position[1]), start)
             position[0] += start.width
-            print(self.addIcon)
             for i in range(len(self.addIcon) - 1):
                 upped = 3
                 if type(self.addIcon[i]) == list:
@@ -59,7 +58,6 @@ class ImageResizer:
             upped = 3
             middle = middle_var.copy()
 
-            print(self.addIcon[len(self.addIcon) - 1])
             if type(self.addIcon[len(self.addIcon) - 1]) == list:
                 upped = 3 + self.addIcon[len(self.addIcon) - 1][1]
                 icon = Image.open(self.addIcon[len(self.addIcon) - 1][0])
@@ -95,25 +93,17 @@ class ImageResizer:
         return ImageEnhance.Sharpness(image).enhance(sharpness)
 
     def resize_image(self, target_width=191, target_height=121):
-        #try:
-            # Create the canvas for the result
-            result_image = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
-            
-            # Open the image
-            original_image = Image.open(self.input_path)
 
-            # Resize the image using ANTIALIAS filter
-            resized_image = original_image.resize(self.acquire_new_size(original_image), PIL.Image.NEAREST)
+        result_image = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
+        original_image = Image.open(self.input_path)
 
-            # Calculate the position to paste the resized image at the center
-            paste_position = ((target_width - resized_image.width) // 2, (target_height - resized_image.height) // 2)
-            
-            result_image.alpha_composite(resized_image, paste_position)
-            result_image.alpha_composite(self.upsize_black_lines(self.input_path), paste_position)
+        resized_image = original_image.resize(self.acquire_new_size(original_image), PIL.Image.NEAREST)
+        paste_position = ((target_width - resized_image.width) // 2, (target_height - resized_image.height) // 2)
+        
+        result_image.alpha_composite(resized_image, paste_position)
+        result_image.alpha_composite(self.upsize_black_lines(self.input_path), paste_position)
 
-            return result_image
+        return result_image
 
-        #except Exception as e:
-        #    print(f"An error occurred: {e}")
-    def save_image(self, image):
-        image.save(self.output_path)
+    def save_image(self, image, path):
+        image.save(path)
