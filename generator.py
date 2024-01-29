@@ -90,6 +90,9 @@ class ImageResizer:
                             pass
         black_lines = black_lines.resize(self.acquire_new_size(black_lines), PIL.Image.BILINEAR)
         return black_lines
+    
+    def sharpen(self, image, sharpness=4.0):
+        return ImageEnhance.Sharpness(image).enhance(sharpness)
 
     def resize_image(self, target_width=191, target_height=121):
         #try:
@@ -107,8 +110,6 @@ class ImageResizer:
             
             result_image.alpha_composite(resized_image, paste_position)
             result_image.alpha_composite(self.upsize_black_lines(self.input_path), paste_position)
-
-            result_image = ImageEnhance.Sharpness(result_image).enhance(4.0)
 
             return result_image
 

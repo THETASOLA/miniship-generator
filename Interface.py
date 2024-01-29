@@ -14,6 +14,7 @@ class ImageResizerGUI:
         self.resizer = ImageResizer
         self.miniship = None
         self.current_icon_elevation = 0
+        self.sharpen = 4.0
 
         # Variables
         self.selected_image = None
@@ -62,8 +63,22 @@ class ImageResizerGUI:
         self.icon_canvas_mini = tk.Canvas(self.icons_docker, width=100, height=100, background="#0a1621")
         self.icon_canvas_mini.grid(row=3, column=4, rowspan=3, padx=10, pady=5)
 
+        # Slider from 0 to 10
+        self.slider_label = tk.Label(master, text="Sharpness")
+        self.slider_label.grid(row=0, column=2, padx=10, pady=5, columnspan=2, sticky="nsew")
+        self.slider_var = tk.DoubleVar()
+        self.slider = tk.Scale(master, from_=0, to=10, variable=self.slider_var, orient=tk.HORIZONTAL, command=self.slider_changed)
+        self.slider.grid(row=1, column=2, padx=10, pady=5, columnspan=2, sticky="nsew")
+
         # Populate the icons listbox
         self.populate_icons_treeview()
+    
+    def slider_changed(self, event):
+        generate = self.miniship.copy()
+        generate = self.resizer.sharpen(generate, self.slider_var.get())
+        self.sharpen = self.slider_var.get()
+        self.resizer.setup_add_icon(generate)
+        self.display_miniship(generate)
     
     def up_icon(self):
         self.current_icon_elevation += -1
@@ -73,6 +88,7 @@ class ImageResizerGUI:
             icon_path = os.path.join("customizeUI/icons/", selected_icon_name)
             if self.miniship:
                 generate = self.miniship.copy()
+                generate = self.resizer.sharpen(generate, 4.0)
                 self.resizer.setup_add_icon_temp(generate, icon_path, self.current_icon_elevation)
                 self.display_miniship(generate)
     
@@ -84,6 +100,7 @@ class ImageResizerGUI:
             icon_path = os.path.join("customizeUI/icons/", selected_icon_name)
             if self.miniship:
                 generate = self.miniship.copy()
+                generate = self.resizer.sharpen(generate, 4.0)
                 self.resizer.setup_add_icon_temp(generate, icon_path, self.current_icon_elevation)
                 self.display_miniship(generate)
 
@@ -95,7 +112,6 @@ class ImageResizerGUI:
         for icon_file in icon_files:
             icon_path = os.path.join(icons_directory, icon_file)
             icon_image = Image.open(icon_path)
-            resized_icon = ImageOps.fit(icon_image, (50, 50), method=0, bleed=0.0, centering=(0.5, 0.5))
             photo = ImageTk.PhotoImage(icon_image)
             self.icons_treeview.insert("", "end", text=icon_file , image= photo)
 
@@ -105,6 +121,7 @@ class ImageResizerGUI:
         generate = self.resizer.resize_image()
         self.miniship = generate
         generate = self.miniship.copy()
+        generate = self.resizer.sharpen(generate, 4.0)
         self.resizer.setup_add_icon(generate)
         self.display_miniship(generate)
 
@@ -128,6 +145,7 @@ class ImageResizerGUI:
         elevation = self.current_icon_elevation
         self.resizer.addIcon.append([icon_path, elevation])
         generate = self.miniship.copy()
+        generate = self.resizer.sharpen(generate, self.sharpen)
         self.resizer.setup_add_icon(generate)
         self.display_miniship(generate)
 
@@ -135,6 +153,7 @@ class ImageResizerGUI:
         if self.resizer.addIcon and self.resizer.addIcon[-1]:
             self.resizer.addIcon.remove(self.resizer.addIcon[-1])
             generate = self.miniship.copy()
+            generate = self.resizer.sharpen(generate, self.sharpen)
             self.resizer.setup_add_icon(generate)
             self.display_miniship(generate)
 
@@ -147,6 +166,7 @@ class ImageResizerGUI:
             icon_path = os.path.join("customizeUI/icons/", selected_icon_name)
             if self.miniship:
                 generate = self.miniship.copy()
+                generate = self.resizer.sharpen(generate, self.sharpen)
                 self.resizer.setup_add_icon_temp(generate, icon_path)
                 self.display_miniship(generate)
 
