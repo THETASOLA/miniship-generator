@@ -40,28 +40,42 @@ class ImageResizer:
         if len(self.addIcon) > 0:
             image.paste(start, (position[0]-3, position[1]), start)
             position[0] += start.width
+            print(self.addIcon)
             for i in range(len(self.addIcon) - 1):
-                icon = Image.open(self.addIcon[i])
+                upped = 3
+                if type(self.addIcon[i]) == list:
+                    upped = 3 + self.addIcon[i][1]
+                    icon = Image.open(self.addIcon[i][0])
+                else:
+                    icon = Image.open(self.addIcon[i])
                 middle = middle_var.copy()
-
+                
                 middle = middle.resize((icon.width+3, middle.height), PIL.Image.BILINEAR)
                 image.paste(middle, (position[0]-3, position[1]), middle)
-                image.paste(icon, (position[0], position[1] + 3), icon)
+                image.paste(icon, (position[0], position[1] + upped), icon)
                 
                 position[0] += icon.width + 3
             
+            upped = 3
             middle = middle_var.copy()
-            icon = Image.open(self.addIcon[len(self.addIcon) - 1])
+
+            print(self.addIcon[len(self.addIcon) - 1])
+            if type(self.addIcon[len(self.addIcon) - 1]) == list:
+                upped = 3 + self.addIcon[len(self.addIcon) - 1][1]
+                icon = Image.open(self.addIcon[len(self.addIcon) - 1][0])
+            else:
+                icon = Image.open(self.addIcon[len(self.addIcon) - 1])
+
             middle = middle.resize((icon.width+3, middle.height), PIL.Image.BILINEAR)
             image.paste(middle, (position[0]-3, position[1]), middle)
             position[0] += icon.width
             image.paste(end, (position[0], position[1]), end)
-            image.paste(icon, (position[0]- icon.width, position[1] + 3), icon)
+            image.paste(icon, (position[0]- icon.width, position[1] + upped), icon)
     
-    def setup_add_icon_temp(self, image, icon_path):
-        self.addIcon.append(icon_path)
+    def setup_add_icon_temp(self, image, icon_path, elevation = 0):
+        self.addIcon.append([icon_path, elevation])
         self.setup_add_icon(image)
-        self.addIcon.remove(icon_path)
+        self.addIcon.remove([icon_path, elevation])
             
     
     def upsize_black_lines(self, image):
@@ -75,10 +89,7 @@ class ImageResizer:
                         except:
                             pass
         black_lines = black_lines.resize(self.acquire_new_size(black_lines), PIL.Image.BILINEAR)
-        result_image = ImageEnhance.Sharpness(black_lines).enhance(10.0)
         return black_lines
-        
-        
 
     def resize_image(self, target_width=191, target_height=121):
         #try:
@@ -105,10 +116,3 @@ class ImageResizer:
         #    print(f"An error occurred: {e}")
     def save_image(self, image):
         image.save(self.output_path)
-
-# Example usage:
-#input_image_path = "ship/mup_rebel_a_base.png"  # Replace with your input image path
-#output_image_path = "output_resized.png"  # Replace with your desired output path
-#
-#resizer = ImageResizer(input_image_path, output_image_path)
-#resizer.resize_image()

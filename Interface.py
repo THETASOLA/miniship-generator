@@ -13,19 +13,16 @@ class ImageResizerGUI:
         self.master.title("Miniship Generator")
         self.resizer = ImageResizer
         self.miniship = None
+        self.current_icon_elevation = 0
 
         # Variables
         self.selected_image = None
 
         # Create labels and entry widgets for input and output paths
-        self.input_label = tk.Label(master, text="Input Image:")
-        self.input_label.grid(row=0, column=0, padx=10, pady=5)
-        self.browse_button = tk.Button(master, text="Browse", command=self.browse_input)
+        self.browse_button = tk.Button(master, text="Load Ship Sprite", command=self.browse_input)
         self.browse_button.grid(row=0, column=1, padx=10, pady=5)
 
-        self.output_label = tk.Label(master, text="Output Path:")
-        self.output_label.grid(row=1, column=0, padx=10, pady=5)
-        self.save_button = tk.Button(master, text="Save As", command=self.browse_output)
+        self.save_button = tk.Button(master, text="Save Miniship", command=self.browse_output)
         self.save_button.grid(row=1, column=1, padx=10, pady=5)
 
         # Create canvas for image display
@@ -53,12 +50,43 @@ class ImageResizerGUI:
         self.delete_icon = tk.Button(self.icons_docker, text="del", command=self.del_icon)
         self.delete_icon.grid(row=4, column=2, padx=10, pady=5)
 
+        # Create a button to nudge up the icon
+        self.upping_icon = tk.Button(self.icons_docker, text="up", command=self.up_icon)
+        self.upping_icon.grid(row=5, column=2, padx=10, pady=5)
+
+        # Create a button to nudge down the icon
+        self.downing_icon = tk.Button(self.icons_docker, text="down", command=self.down_icon)
+        self.downing_icon.grid(row=6, column=2, padx=10, pady=5)
+
         # Create canvas for icon display
-        self.icon_canvas_mini = tk.Canvas(self.icons_docker, width=100, height=100)
+        self.icon_canvas_mini = tk.Canvas(self.icons_docker, width=100, height=100, background="#0a1621")
         self.icon_canvas_mini.grid(row=3, column=4, rowspan=3, padx=10, pady=5)
 
         # Populate the icons listbox
         self.populate_icons_treeview()
+    
+    def up_icon(self):
+        self.current_icon_elevation += -1
+        selected_item_id = self.icons_treeview.selection()
+        if selected_item_id:
+            selected_icon_name = self.icons_treeview.item(selected_item_id, "text")
+            icon_path = os.path.join("customizeUI/icons/", selected_icon_name)
+            if self.miniship:
+                generate = self.miniship.copy()
+                self.resizer.setup_add_icon_temp(generate, icon_path, self.current_icon_elevation)
+                self.display_miniship(generate)
+    
+    def down_icon(self):
+        self.current_icon_elevation += 1
+        selected_item_id = self.icons_treeview.selection()
+        if selected_item_id:
+            selected_icon_name = self.icons_treeview.item(selected_item_id, "text")
+            icon_path = os.path.join("customizeUI/icons/", selected_icon_name)
+            if self.miniship:
+                generate = self.miniship.copy()
+                self.resizer.setup_add_icon_temp(generate, icon_path, self.current_icon_elevation)
+                self.display_miniship(generate)
+
 
     def populate_icons_treeview(self):
         icons_directory = "customizeUI/icons/"
@@ -95,19 +123,24 @@ class ImageResizerGUI:
             
     def add_icon(self):
         icon_path = os.path.join("customizeUI/icons/", self.icons_treeview.item(self.icons_treeview.selection(), "text"))
-        self.resizer.addIcon.append(icon_path)
+        #we make a copy of the current elevation
+
+        elevation = self.current_icon_elevation
+        self.resizer.addIcon.append([icon_path, elevation])
         generate = self.miniship.copy()
         self.resizer.setup_add_icon(generate)
         self.display_miniship(generate)
 
     def del_icon(self):
-        self.resizer.addIcon.remove(self.resizer.addIcon[-1])
-        generate = self.miniship.copy()
-        self.resizer.setup_add_icon(generate)
-        self.display_miniship(generate)
+        if self.resizer.addIcon and self.resizer.addIcon[-1]:
+            self.resizer.addIcon.remove(self.resizer.addIcon[-1])
+            generate = self.miniship.copy()
+            self.resizer.setup_add_icon(generate)
+            self.display_miniship(generate)
 
     
     def load_selected_icon(self, event):
+        self.current_icon_elevation = 0
         selected_item_id = self.icons_treeview.selection()
         if selected_item_id:
             selected_icon_name = self.icons_treeview.item(selected_item_id, "text")
