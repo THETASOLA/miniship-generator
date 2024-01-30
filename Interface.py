@@ -17,26 +17,26 @@ class ImageResizerGUI:
 
         # Create labels and entry widgets for input and output paths
         self.browse_button = tk.Button(master, text="Load Ship Sprite", command=self.browse_input)
-        self.browse_button.grid(row=0, column=1, padx=10, pady=5)
+        self.browse_button.grid(row=0, column=0, padx=10, pady=5)
 
         self.save_button = tk.Button(master, text="Save Miniship", command=self.browse_output)
-        self.save_button.grid(row=1, column=1, padx=10, pady=5)
+        self.save_button.grid(row=0, column=1, padx=10, pady=5)
 
         # Create canvas for image display
         self.canvas = tk.Canvas(master, width=200, height=200)
         self.canvas.grid(row=2, column=3, rowspan=3, padx=10, pady=5)
 
         # Create treeview for icons with previews
-        self.icons_treeview = ttk.Treeview(master, selectmode="browse", columns=("Icon",))
+        self.icons_treeview = ttk.Treeview(master, selectmode="browse", columns=("Icon",), height=20)
         self.icons_treeview.grid(row=4, column=0, padx=10, pady=5, rowspan=3, columnspan=2, sticky="nsew")
         self.icons_treeview.bind("<ButtonRelease-1>", self.load_selected_icon)
 
         # Set up treeview columns
         self.icons_treeview.heading("#0", text="Icons")
-        self.icons_treeview.column("#0", width=150, anchor="w")
+        self.icons_treeview.column("#0",width=150, anchor="w")
 
         # Create a docker for the icons and the buttons
-        self.icons_docker = tk.Frame(master, border=1, relief="sunken", width=50, background="black")
+        self.icons_docker = tk.Frame(master, border=1, relief="sunken", width=50, height=5, background="black")
         self.icons_docker.grid(row=3, column=3, padx=10, pady=5, rowspan=3, sticky="nsew")
         
         # Create a button to permanently add icon
@@ -66,8 +66,26 @@ class ImageResizerGUI:
         self.slider = tk.Scale(master, from_=0, to=10, variable=self.slider_var, orient=tk.HORIZONTAL, command=self.slider_changed)
         self.slider.grid(row=1, column=2, padx=10, pady=5, columnspan=2, sticky="nsew")
 
+        self.search_entry_label = tk.Label(master, text="Search Icons")
+        self.search_entry_label.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
+        # Create a search bar entry widget
+        self.search_entry = tk.Entry(master)
+        self.search_entry.grid(row=3, column=1, padx=10, pady=5)
+        self.search_entry.bind('<KeyRelease>', self.filter_icons)
+
         # Populate the icons listbox
         self.populate_icons_treeview()
+
+    def filter_icons(self, event):
+        search_term = self.search_entry.get().lower()
+        
+        # Clear existing items from the treeview
+        for item_id in self.icons_treeview.get_children():
+            self.icons_treeview.delete(item_id)
+
+        for icon_file in self.icon_files:
+            if search_term in icon_file.lower():
+                self.icons_treeview.insert("", "end", text=icon_file)
     
     def slider_changed(self, event):
         generate = self.miniship.copy()
@@ -103,13 +121,10 @@ class ImageResizerGUI:
 
     def populate_icons_treeview(self):
         icons_directory = "customizeUI/"
-        icon_files = [f for f in os.listdir(icons_directory) if f.lower().endswith(".png")]
+        self.icon_files = [f for f in os.listdir(icons_directory) if f.lower().endswith(".png")]
 
-        for icon_file in icon_files:
-            icon_path = os.path.join(icons_directory, icon_file)
-            icon_image = Image.open(icon_path)
-            photo = ImageTk.PhotoImage(icon_image)
-            self.icons_treeview.insert("", "end", text=icon_file , image= photo)
+        for icon_file in self.icon_files:
+            self.icons_treeview.insert("", "end", text=icon_file)
 
     def browse_input(self):
         self.selected_image = filedialog.askopenfilename(title="Select Image", defaultextension=".png" , filetypes=[("PNG files", "*.png")])
