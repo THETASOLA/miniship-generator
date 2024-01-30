@@ -1,4 +1,3 @@
-import PIL
 from PIL import Image
 from PIL import ImageEnhance
 
@@ -49,7 +48,7 @@ class ImageResizer:
                     icon = Image.open(self.addIcon[i])
                 middle = middle_var.copy()
                 
-                middle = middle.resize((icon.width+3, middle.height), PIL.Image.BILINEAR)
+                middle = middle.resize((icon.width+3, middle.height), Image.BILINEAR)
                 image.paste(middle, (position[0]-3, position[1]), middle)
                 image.paste(icon, (position[0], position[1] + upped), icon)
                 
@@ -64,7 +63,7 @@ class ImageResizer:
             else:
                 icon = Image.open(self.addIcon[len(self.addIcon) - 1])
 
-            middle = middle.resize((icon.width+3, middle.height), PIL.Image.BILINEAR)
+            middle = middle.resize((icon.width+3, middle.height), Image.BILINEAR)
             image.paste(middle, (position[0]-3, position[1]), middle)
             position[0] += icon.width
             image.paste(end, (position[0], position[1]), end)
@@ -86,7 +85,7 @@ class ImageResizer:
                             black_lines.putpixel((x-1, y-1), (0, 0, 0, 255))
                         except:
                             pass
-        black_lines = black_lines.resize(self.acquire_new_size(black_lines), PIL.Image.BILINEAR)
+        black_lines = black_lines.resize(self.acquire_new_size(black_lines), Image.BILINEAR)
         return black_lines
     
     def sharpen(self, image, sharpness=4.0):
@@ -97,7 +96,7 @@ class ImageResizer:
         result_image = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
         original_image = Image.open(self.input_path)
 
-        resized_image = original_image.resize(self.acquire_new_size(original_image), PIL.Image.NEAREST)
+        resized_image = original_image.resize(self.acquire_new_size(original_image), Image.NEAREST)
         paste_position = ((target_width - resized_image.width) // 2, (target_height - resized_image.height) // 2)
         
         result_image.alpha_composite(resized_image, paste_position)

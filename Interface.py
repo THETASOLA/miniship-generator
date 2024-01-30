@@ -1,7 +1,7 @@
 from tkinter import filedialog
 from generator import ImageResizer
 import os
-from PIL import Image, ImageTk, ImageOps
+from PIL import ImageTk, ImageOps
 import tkinter as tk
 from tkinter import ttk
 
