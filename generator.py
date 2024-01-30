@@ -7,6 +7,11 @@ class ImageResizer:
         self.input_path = input_path
         self.output_path = output_path
         self.addIcon = []
+        self.already_resized = False
+
+        sizeX, sizeY = Image.open(input_path).width, Image.open(input_path).height
+        if sizeX < 200 or sizeY < 130:
+            self.already_resized = True
         
     def acquire_new_size(self, image, target_width=191, target_height=121):
         # Calculate the aspect ratio
@@ -89,9 +94,14 @@ class ImageResizer:
         return black_lines
     
     def sharpen(self, image, sharpness=4.0):
+        if self.already_resized:
+            return image
         return ImageEnhance.Sharpness(image).enhance(sharpness)
 
     def resize_image(self, target_width=191, target_height=121):
+        
+        if self.already_resized:
+            return Image.open(self.input_path)
 
         result_image = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
         original_image = Image.open(self.input_path)
