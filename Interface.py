@@ -139,7 +139,7 @@ class ImageResizerGUI:
     def browse_output(self):
         if self.miniship:
 
-            file_path = filedialog.asksaveasfilename(initialfile = "miniship_" + os.path.basename(self.selected_image),title="Save As", defaultextension=".png", filetypes=[("PNG files", "*.png")])
+            file_path = filedialog.asksaveasfilename(initialfile = "miniship_" + os.path.basename(self.selected_image).replace("_base", ""),title="Save As", defaultextension=".png", filetypes=[("PNG files", "*.png")])
             generate = self.miniship.copy()
             generate = self.resizer.sharpen(generate, self.sharpen)
             self.resizer.setup_add_icon(generate)
