@@ -62,13 +62,22 @@ class ImageResizerGUI:
         self.icon_canvas_mini.grid(row=3, column=4, rowspan=3, padx=10, pady=5)
         
         # Create a drop down list for the bottom icons
-        self.bottom_icon_label = tk.Label(self.icons_docker, text="Bottom Icon")
+        self.bottom_icon_label = tk.Label(self.icons_docker, text="Bottom Left Icon")
         self.bottom_icon_label.grid(row=6, column=4, padx=10, pady=5, sticky="nsew")
         self.bottom_icon_var = tk.StringVar()
         self.bottom_icon_var.set("None")
         self.bottom_icon = ttk.Combobox(self.icons_docker, textvariable=self.bottom_icon_var, values=["None"])
         self.bottom_icon.grid(row=7, column=4, padx=10, pady=5, sticky="nsew")
         self.bottom_icon.bind("<<ComboboxSelected>>", self.bottom_icon_changed)
+        
+        # Create a drop down list for the bottom right icons
+        self.bottom_right_icon_label = tk.Label(self.icons_docker, text="Bottom Right Icon")
+        self.bottom_right_icon_label.grid(row=8, column=4, padx=10, pady=5, sticky="nsew")
+        self.bottom_right_icon_var = tk.StringVar()
+        self.bottom_right_icon_var.set("None")
+        self.bottom_right_icon = ttk.Combobox(self.icons_docker, textvariable=self.bottom_right_icon_var, values=["None"])
+        self.bottom_right_icon.grid(row=9, column=4, padx=10, pady=5, sticky="nsew")
+        self.bottom_right_icon.bind("<<ComboboxSelected>>", self.bottom_right_icon_changed)
         
         # Slider from 0 to 10
         self.slider_sharp_label = tk.Label(master, text="Sharpness")
@@ -94,6 +103,7 @@ class ImageResizerGUI:
         # Populate the icons listbox
         self.populate_icons_treeview()
         self.populate_bottom_icon_dropdown()
+        self.populate_bottom_right_icon_dropdown()
         
     def populate_bottom_icon_dropdown(self, path="customizeUI\\bbox\\"):
         file_list = os.listdir(path)
@@ -104,6 +114,16 @@ class ImageResizerGUI:
 
         self.bottom_icon["values"] = file_list
         self.bottom_icon.current(0)
+    
+    def populate_bottom_right_icon_dropdown(self, path="customizeUI\\elite\\"):
+        file_list = os.listdir(path)
+
+        image_extensions = [".png", ".jpg", ".jpeg", ".gif"]
+        file_list = [file for file in file_list if any(file.lower().endswith(ext) for ext in image_extensions)]
+        file_list.insert(0, "None")
+
+        self.bottom_right_icon["values"] = file_list
+        self.bottom_right_icon.current(0)
 
     def filter_icons(self, event):
         search_term = self.search_entry.get().lower()
@@ -119,6 +139,15 @@ class ImageResizerGUI:
     def bottom_icon_changed(self, event):
         if self.miniship:
             self.resizer.addIcon_bottom = self.bottom_icon_var.get()
+            generate = self.miniship.copy()
+            generate = self.resizer.sharpen(generate, self.slider_sharp_var.get())
+            self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
+            self.resizer.setup_add_icon(generate)
+            self.display_miniship(generate)
+            
+    def bottom_right_icon_changed(self, event):
+        if self.miniship:
+            self.resizer.addIcon_bottom_right = self.bottom_right_icon_var.get()
             generate = self.miniship.copy()
             generate = self.resizer.sharpen(generate, self.slider_sharp_var.get())
             self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
