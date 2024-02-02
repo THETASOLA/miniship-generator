@@ -13,6 +13,7 @@ class ImageResizerGUI:
         self.miniship = None
         self.current_icon_elevation = 0
         self.sharpen = 4.0
+        self.outline = 1
         self.selected_image = None
 
         # Create labels and entry widgets for input and output paths
@@ -37,7 +38,7 @@ class ImageResizerGUI:
 
         # Create a docker for the icons and the buttons
         self.icons_docker = tk.Frame(master, border=1, relief="sunken", width=50, height=5, background="black")
-        self.icons_docker.grid(row=3, column=3, padx=10, pady=5, rowspan=3, sticky="nsew")
+        self.icons_docker.grid(row=4, column=3, padx=10, pady=5, rowspan=3, sticky="nsew")
         
         # Create a button to permanently add icon
         self.save_icon = tk.Button(self.icons_docker, text="add", command=self.add_icon)
@@ -60,11 +61,18 @@ class ImageResizerGUI:
         self.icon_canvas_mini.grid(row=3, column=4, rowspan=3, padx=10, pady=5)
 
         # Slider from 0 to 10
-        self.slider_label = tk.Label(master, text="Sharpness")
-        self.slider_label.grid(row=0, column=2, padx=10, pady=5, columnspan=2, sticky="nsew")
-        self.slider_var = tk.DoubleVar()
-        self.slider = tk.Scale(master, from_=0, to=10, variable=self.slider_var, orient=tk.HORIZONTAL, command=self.slider_changed)
-        self.slider.grid(row=1, column=2, padx=10, pady=5, columnspan=2, sticky="nsew")
+        self.slider_sharp_label = tk.Label(master, text="Sharpness")
+        self.slider_sharp_label.grid(row=0, column=2, padx=10, pady=5, columnspan=2, sticky="nsew")
+        self.slider_sharp_var = tk.DoubleVar()
+        self.slider_sharp = tk.Scale(master, from_=0, to=10, variable=self.slider_sharp_var, orient=tk.HORIZONTAL, command=self.slider_sharp_changed)
+        self.slider_sharp.grid(row=1, column=2, padx=10, pady=5, columnspan=2, sticky="nsew")
+
+        # Slider from 0 to 5
+        self.slider_outline_label = tk.Label(master, text="Outline")
+        self.slider_outline_label.grid(row=2, column=2, padx=10, pady=5, columnspan=2, sticky="nsew")
+        self.slider_outline_var = tk.DoubleVar()
+        self.slider_outline = tk.Scale(master, from_=0, to=4, variable=self.slider_outline_var, orient=tk.HORIZONTAL, command=self.slider_outline_changed)
+        self.slider_outline.grid(row=3, column=2, padx=10, pady=5, columnspan=2, sticky="nsew")
 
         self.search_entry_label = tk.Label(master, text="Search Icons")
         self.search_entry_label.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
@@ -87,10 +95,19 @@ class ImageResizerGUI:
             if search_term in icon_file.lower():
                 self.icons_treeview.insert("", "end", text=icon_file)
     
-    def slider_changed(self, event):
+    def slider_sharp_changed(self, event):
         generate = self.miniship.copy()
-        generate = self.resizer.sharpen(generate, self.slider_var.get())
-        self.sharpen = self.slider_var.get()
+        generate = self.resizer.sharpen(generate, self.slider_sharp_var.get())
+        self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
+        self.sharpen = self.slider_sharp_var.get()
+        self.resizer.setup_add_icon(generate)
+        self.display_miniship(generate)
+
+    def slider_outline_changed(self, event):
+        generate = self.miniship.copy()
+        self.outline = int(self.slider_outline_var.get() + 1)
+        generate = self.resizer.sharpen(generate, self.sharpen)
+        self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
         self.resizer.setup_add_icon(generate)
         self.display_miniship(generate)
     
@@ -103,6 +120,7 @@ class ImageResizerGUI:
             if self.miniship:
                 generate = self.miniship.copy()
                 generate = self.resizer.sharpen(generate, self.sharpen)
+                self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
                 self.resizer.setup_add_icon_temp(generate, icon_path, self.current_icon_elevation)
                 self.display_miniship(generate)
     
@@ -115,9 +133,9 @@ class ImageResizerGUI:
             if self.miniship:
                 generate = self.miniship.copy()
                 generate = self.resizer.sharpen(generate, self.sharpen)
+                self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
                 self.resizer.setup_add_icon_temp(generate, icon_path, self.current_icon_elevation)
                 self.display_miniship(generate)
-
 
     def populate_icons_treeview(self):
         icons_directory = "customizeUI/"
@@ -130,9 +148,11 @@ class ImageResizerGUI:
         self.selected_image = filedialog.askopenfilename(title="Select Image", defaultextension=".png" , filetypes=[("PNG files", "*.png")])
         self.resizer = ImageResizer(self.selected_image, "")
         generate = self.resizer.resize_image()
+        self.resizer.cache_black_lines(self.selected_image)
         self.miniship = generate
         generate = self.miniship.copy()
         generate = self.resizer.sharpen(generate, self.sharpen)
+        self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
         self.resizer.setup_add_icon(generate)
         self.display_miniship(generate)
 
@@ -142,8 +162,9 @@ class ImageResizerGUI:
             file_path = filedialog.asksaveasfilename(initialfile = "miniship_" + os.path.basename(self.selected_image).replace("_base", ""),title="Save As", defaultextension=".png", filetypes=[("PNG files", "*.png")])
             generate = self.miniship.copy()
             generate = self.resizer.sharpen(generate, self.sharpen)
+            self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
+            self.resizer.save_image(generate ,file_path.replace(".png", "_base.png"))
             self.resizer.setup_add_icon(generate)
-            self.resizer.save_image(self.resizer.sharpen(self.miniship, self.sharpen) ,file_path.replace(".png", "_base.png"))
             self.resizer.save_image(generate ,file_path)
 
     def display_image(self, image):
@@ -160,6 +181,7 @@ class ImageResizerGUI:
         self.resizer.addIcon.append([icon_path, elevation])
         generate = self.miniship.copy()
         generate = self.resizer.sharpen(generate, self.sharpen)
+        self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
         self.resizer.setup_add_icon(generate)
         self.display_miniship(generate)
 
@@ -168,6 +190,7 @@ class ImageResizerGUI:
             self.resizer.addIcon.remove(self.resizer.addIcon[-1])
             generate = self.miniship.copy()
             generate = self.resizer.sharpen(generate, self.sharpen)
+            self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
             self.resizer.setup_add_icon(generate)
             self.display_miniship(generate)
 
@@ -181,6 +204,7 @@ class ImageResizerGUI:
             if self.miniship:
                 generate = self.miniship.copy()
                 generate = self.resizer.sharpen(generate, self.sharpen)
+                self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
                 self.resizer.setup_add_icon_temp(generate, icon_path)
                 self.display_miniship(generate)
 
