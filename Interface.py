@@ -4,6 +4,7 @@ import os
 from PIL import ImageTk, ImageOps
 import tkinter as tk
 from tkinter import ttk
+import customizeUI
 
 class ImageResizerGUI:
     def __init__(self, master):
@@ -59,7 +60,16 @@ class ImageResizerGUI:
         # Create canvas for icon display
         self.icon_canvas_mini = tk.Canvas(self.icons_docker, width=100, height=100, background="#0a1621")
         self.icon_canvas_mini.grid(row=3, column=4, rowspan=3, padx=10, pady=5)
-
+        
+        # Create a drop down list for the bottom icons
+        self.bottom_icon_label = tk.Label(self.icons_docker, text="Bottom Icon")
+        self.bottom_icon_label.grid(row=6, column=4, padx=10, pady=5, sticky="nsew")
+        self.bottom_icon_var = tk.StringVar()
+        self.bottom_icon_var.set("None")
+        self.bottom_icon = ttk.Combobox(self.icons_docker, textvariable=self.bottom_icon_var, values=["None"])
+        self.bottom_icon.grid(row=7, column=4, padx=10, pady=5, sticky="nsew")
+        self.bottom_icon.bind("<<ComboboxSelected>>", self.bottom_icon_changed)
+        
         # Slider from 0 to 10
         self.slider_sharp_label = tk.Label(master, text="Sharpness")
         self.slider_sharp_label.grid(row=0, column=2, padx=10, pady=5, columnspan=2, sticky="nsew")
@@ -74,15 +84,26 @@ class ImageResizerGUI:
         self.slider_outline = tk.Scale(master, from_=0, to=4, variable=self.slider_outline_var, orient=tk.HORIZONTAL, command=self.slider_outline_changed)
         self.slider_outline.grid(row=3, column=2, padx=10, pady=5, columnspan=2, sticky="nsew")
 
+        # Create a search bar entry widget
         self.search_entry_label = tk.Label(master, text="Search Icons")
         self.search_entry_label.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
-        # Create a search bar entry widget
         self.search_entry = tk.Entry(master)
         self.search_entry.grid(row=3, column=1, padx=10, pady=5)
         self.search_entry.bind('<KeyRelease>', self.filter_icons)
 
         # Populate the icons listbox
         self.populate_icons_treeview()
+        self.populate_bottom_icon_dropdown()
+        
+    def populate_bottom_icon_dropdown(self, path="customizeUI\\bbox\\"):
+        file_list = os.listdir(path)
+
+        image_extensions = [".png", ".jpg", ".jpeg", ".gif"]
+        file_list = [file for file in file_list if any(file.lower().endswith(ext) for ext in image_extensions)]
+        file_list.insert(0, "None")
+
+        self.bottom_icon["values"] = file_list
+        self.bottom_icon.current(0)
 
     def filter_icons(self, event):
         search_term = self.search_entry.get().lower()
@@ -94,6 +115,15 @@ class ImageResizerGUI:
         for icon_file in self.icon_files:
             if search_term in icon_file.lower():
                 self.icons_treeview.insert("", "end", text=icon_file)
+    
+    def bottom_icon_changed(self, event):
+        if self.miniship:
+            self.resizer.addIcon_bottom = self.bottom_icon_var.get()
+            generate = self.miniship.copy()
+            generate = self.resizer.sharpen(generate, self.slider_sharp_var.get())
+            self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
+            self.resizer.setup_add_icon(generate)
+            self.display_miniship(generate)
     
     def slider_sharp_changed(self, event):
         generate = self.miniship.copy()

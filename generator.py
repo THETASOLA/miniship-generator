@@ -10,6 +10,7 @@ class ImageResizer:
         self.already_resized = False
         self.black_lines_cache = [None] * 6
         self.image_position = None
+        self.addIcon_bottom = None
 
         sizeX, sizeY = Image.open(input_path).width, Image.open(input_path).height
         if sizeX < 200 or sizeY < 130:
@@ -74,6 +75,10 @@ class ImageResizer:
             position[0] += icon.width
             image.paste(end, (position[0], position[1]), end)
             image.paste(icon, (position[0]- icon.width, position[1] + upped), icon)
+        
+        if self.addIcon_bottom and self.addIcon_bottom != "None":
+            cpy = Image.open("customizeUI/bbox/"+self.addIcon_bottom)
+            image.paste(cpy, (0, 0), cpy)
     
     def setup_add_icon_temp(self, image, icon_path, elevation = 0):
         self.addIcon.append([icon_path, elevation])
