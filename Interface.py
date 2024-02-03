@@ -29,7 +29,7 @@ class ImageResizerGUI:
         self.canvas.grid(row=2, column=3, rowspan=3, padx=10, pady=5)
 
         # Create treeview for icons with previews
-        self.icons_treeview = ttk.Treeview(master, selectmode="browse", columns=("Icon",), height=20)
+        self.icons_treeview = ttk.Treeview(master, selectmode="browse", columns=("Icon",), height=12)
         self.icons_treeview.grid(row=4, column=0, padx=10, pady=5, rowspan=3, columnspan=2, sticky="nsew")
         self.icons_treeview.bind("<ButtonRelease-1>", self.load_selected_icon)
 
