@@ -4,7 +4,7 @@ import os
 from PIL import ImageTk, ImageOps
 import tkinter as tk
 from tkinter import ttk
-import customizeUI
+import sys
 
 class ImageResizerGUI:
     def __init__(self, master):
@@ -205,8 +205,11 @@ class ImageResizerGUI:
 
     def browse_input(self):
         self.selected_image = filedialog.askopenfilename(title="Select Image", defaultextension=".png" , filetypes=[("PNG files", "*.png")])
+        print("Path: ",self.selected_image)
         self.resizer = ImageResizer(self.selected_image, "")
+        print("Resizing Input")
         generate = self.resizer.resize_image()
+        print("Caching Outlines...")
         self.resizer.cache_black_lines(self.selected_image)
         self.miniship = generate
         generate = self.miniship.copy()
@@ -214,6 +217,7 @@ class ImageResizerGUI:
         self.resizer.upsize_black_lines(self.selected_image, generate, self.outline)
         self.resizer.setup_add_icon(generate)
         self.display_miniship(generate)
+        print("Displaying Image")
 
     def browse_output(self):
         if self.miniship:
@@ -279,4 +283,5 @@ class ImageResizerGUI:
 if __name__ == "__main__":
     root = tk.Tk()
     app = ImageResizerGUI(root)
+    print("Starting GUI")
     root.mainloop()
