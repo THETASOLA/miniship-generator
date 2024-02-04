@@ -91,11 +91,14 @@ class ImageResizer:
         self.addIcon.remove([icon_path, elevation])
     
     def cache_black_lines(self, image):
-
+        if self.already_resized:
+            return
         for i in range(6):
             self.upsize_black_lines(image, Image.new("RGBA", (191, 121)), i)
         
     def upsize_black_lines(self, image, miniship_image, count=1):
+        if self.already_resized:
+            return
         if self.black_lines_cache[count] != None:
             miniship_image.alpha_composite(self.black_lines_cache[count], self.image_position)
             return
