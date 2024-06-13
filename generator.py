@@ -56,7 +56,7 @@ class ImageResizer:
                     icon = Image.open(self.addIcon[i])
                 middle = middle_var.copy()
                 
-                middle = middle.resize((icon.width+3, middle.height), Image.BILINEAR)
+                middle = middle.resize((icon.width+3, middle.height), Image.NEAREST)
                 image.paste(middle, (position[0]-3, position[1]), middle)
                 image.paste(icon, (position[0], position[1] + upped), icon)
                 
@@ -71,7 +71,7 @@ class ImageResizer:
             else:
                 icon = Image.open(self.addIcon[len(self.addIcon) - 1])
 
-            middle = middle.resize((icon.width+3, middle.height), Image.BILINEAR)
+            middle = middle.resize((icon.width+3, middle.height), Image.NEAREST)
             image.paste(middle, (position[0]-3, position[1]), middle)
             position[0] += icon.width
             image.paste(end, (position[0], position[1]), end)
@@ -111,8 +111,8 @@ class ImageResizer:
                 for x in range(1, black_lines.width):
                     if black_lines.getpixel((x, y))[3] > 0:
                         black_lines.putpixel((x, y), (0, 0, 0, 255))
-            black_lines = black_lines.resize((target_size[0]*i, target_size[1]*i), Image.BILINEAR)
-        black_lines = black_lines.resize((target_size[0], target_size[1]), Image.BILINEAR)
+            black_lines = black_lines.resize((target_size[0]*i, target_size[1]*i), Image.NEAREST)
+        black_lines = black_lines.resize((target_size[0], target_size[1]), Image.NEAREST)
             
         miniship_image.alpha_composite(black_lines, self.image_position)
         self.black_lines_cache[count] = black_lines
