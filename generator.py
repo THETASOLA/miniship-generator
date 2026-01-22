@@ -28,6 +28,10 @@ class ImageResizer:
         
     def acquire_black_lines(self, image):
         original_image = Image.open(image)
+        # Convert to RGBA mode if necessary
+        if original_image.mode != "RGBA":
+            original_image = original_image.convert("RGBA")
+            
         for y in range(original_image.height):
             for x in range(original_image.width):
                 if original_image.getpixel((x, y))[0] < 20 and original_image.getpixel((x, y))[1] < 20 and original_image.getpixel((x, y))[2] < 20 and original_image.getpixel((x, y))[3] > 0:
@@ -56,7 +60,7 @@ class ImageResizer:
                     icon = Image.open(self.addIcon[i])
                 middle = middle_var.copy()
                 
-                middle = middle.resize((icon.width+3, middle.height), Image.NEAREST)
+                middle = middle.resize((icon.width+3, middle.height), Image.BILINEAR)
                 image.paste(middle, (position[0]-3, position[1]), middle)
                 image.paste(icon, (position[0], position[1] + upped), icon)
                 
@@ -71,7 +75,7 @@ class ImageResizer:
             else:
                 icon = Image.open(self.addIcon[len(self.addIcon) - 1])
 
-            middle = middle.resize((icon.width+3, middle.height), Image.NEAREST)
+            middle = middle.resize((icon.width+3, middle.height), Image.BILINEAR)
             image.paste(middle, (position[0]-3, position[1]), middle)
             position[0] += icon.width
             image.paste(end, (position[0], position[1]), end)
@@ -91,14 +95,11 @@ class ImageResizer:
         self.addIcon.remove([icon_path, elevation])
     
     def cache_black_lines(self, image):
-        if self.already_resized:
-            return
+
         for i in range(6):
             self.upsize_black_lines(image, Image.new("RGBA", (191, 121)), i)
         
     def upsize_black_lines(self, image, miniship_image, count=1):
-        if self.already_resized:
-            return
         if self.black_lines_cache[count] != None:
             miniship_image.alpha_composite(self.black_lines_cache[count], self.image_position)
             return
@@ -111,8 +112,8 @@ class ImageResizer:
                 for x in range(1, black_lines.width):
                     if black_lines.getpixel((x, y))[3] > 0:
                         black_lines.putpixel((x, y), (0, 0, 0, 255))
-            black_lines = black_lines.resize((target_size[0]*i, target_size[1]*i), Image.NEAREST)
-        black_lines = black_lines.resize((target_size[0], target_size[1]), Image.NEAREST)
+            black_lines = black_lines.resize((target_size[0]*i, target_size[1]*i), Image.BILINEAR)
+        black_lines = black_lines.resize((target_size[0], target_size[1]), Image.BILINEAR)
             
         miniship_image.alpha_composite(black_lines, self.image_position)
         self.black_lines_cache[count] = black_lines
@@ -125,15 +126,26 @@ class ImageResizer:
     def resize_image(self, target_width=191, target_height=121):
         
         if self.already_resized:
-            return Image.open(self.input_path)
+            img = Image.open(self.input_path)
+            if img.mode != "RGBA":
+                img = img.convert("RGBA")
+            return img
 
         result_image = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
         original_image = Image.open(self.input_path)
+        
+        # Convert to RGBA mode if necessary
+        if original_image.mode != "RGBA":
+            original_image = original_image.convert("RGBA")
 
         resized_image = original_image.resize(self.acquire_new_size(original_image), Image.NEAREST)
         self.image_position = ((target_width - resized_image.width) // 2, (target_height - resized_image.height) // 2)
         paste_position = (self.image_position)
         
+        # Ensure resized image is in RGBA mode for alpha_composite
+        if resized_image.mode != "RGBA":
+            resized_image = resized_image.convert("RGBA")
+            
         result_image.alpha_composite(resized_image, paste_position)
 
         return result_image
